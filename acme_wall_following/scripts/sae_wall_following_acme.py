@@ -71,9 +71,8 @@ def get_index(angle, data):
 
   all_angles = np.arange(angle_min, angle_max, angle_inc)
 
-  tf_values = (angle < all_angles) & (all_angles < angle + angle_inc)
+  index = np.where(all_angles == angle)
 
-  index = tf_values.index(TRUE)
   # This should return a single value index (an int value)
 
   return index
