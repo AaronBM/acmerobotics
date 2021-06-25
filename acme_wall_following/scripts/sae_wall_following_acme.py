@@ -64,20 +64,31 @@ def control(centerline_error, steering_angle):
 def get_index(angle, data):
   # 	# TO-DO: For a given angle, return the corresponding index for the data.ranges array
   # ---
-  angle_inc = np.round(data.angle_increment * 180 / np.pi, 2)
-  angle_min = np.round(data.angle_min * 180 / np.pi, 2)
-  angle_max = np.round(data.angle_max * 180 / np.pi, 2)
+  angle_limit = 2
+  angle_inc = data.angle_increment * 180 / np.pi
+  angle_min = data.angle_min * 180 / np.pi
+  angle_max = data.angle_max * 180 / np.pi
 
-  all_angles = np.arange(angle_min, angle_max + angle_inc, angle_inc)
+  all_angles = np.arange(angle_min, angle_max, angle_inc)
 
-  index = np.where((angle <= all_angles) & (all_angles < angle + angle_inc))[0][0]
+  # Find the places where the angle is within the specified limits
+  index = np.where((angle - angle_limit < all_angles) & (all_angles < angle + angle_limit))[0]
+  print(index)
 
-  print('Current index: ', index)
-
-  # This should return a single value index (an int value)
+  print('Current index: [', index[0],', ',index[-1], ']')
 
   return index
 # ---
+
+def get_scan_distance(angle,data):
+  # returns the average distance from the scanner
+  index = get_index(angle,data)
+  scan = np.array(data.ranges[index[0]:index[-1]])
+  clean_scan = scan[np.isfinite(scan)]
+  ave_distance = np.mean(clean_scan)
+
+  return ave_distance
+
 
 def distance(angle_right, angle_lookahead, data):
   global ANGLE_RANGE
@@ -85,22 +96,10 @@ def distance(angle_right, angle_lookahead, data):
 
   # TO-DO: Find index of the two rays, and calculate a, b, alpha and theta. Find the actual distance from the right wall.
   # ---
-
-  lookahead_indexes = range(get_index(angle_lookahead,data) - 2, get_index(angle_lookahead,data) + 2)
-  lookahead_low = lookahead_indexes[0]
-  lookahead_high = lookahead_indexes[-1]
-  a_samples = np.array(data.ranges[lookahead_low:lookahead_high])
-  distance_a = np.mean(a_samples)
+  distance_a = get_scan_distance(angle_lookahead,data)
+  distance_b = get_scan_distance(angle_right,data)
   print('Distance Ahead: ',distance_a)
-
-
-  indexes = range(get_index(angle_right,data) - 2, get_index(angle_right,data) + 2)
-  lookright_low = indexes[0]
-  lookright_high = indexes[-1]
-  b_samples = np.array(data.ranges[lookright_low:lookright_high])
-  distance_b = np.mean(b_samples)
   print('Distance Right: ',distance_b)
-
 
   theta = angle_right - angle_lookahead
   theta_rad = theta * np.pi / 180
@@ -127,8 +126,10 @@ def distance(angle_right, angle_lookahead, data):
 
 
 def follow_center(angle_right, angle_lookahead_right, data):
-  angle_lookahead_left = 180 + angle_right
-  angle_left = 180 - angle_lookahead_right
+  #angle_lookahead_left = 180 + angle_right
+  #angle_left = 180 - angle_lookahead_right
+  angle_lookahead_left = 45
+  angle_left = 90
 
   er, dr = distance(angle_right, angle_lookahead_right, data)
   el, dl = distance(angle_left, angle_lookahead_left, data)
@@ -154,7 +155,7 @@ def callback(data):
   # To follow the centerline
   ec = follow_center(angle_right, angle_lookahead, data)
 
-  control(ec)
+  control(ec, STEERING_ANGLE)
 
   rospy.Frequency(FREQUENCY)
 
