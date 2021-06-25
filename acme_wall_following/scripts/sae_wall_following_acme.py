@@ -26,37 +26,37 @@ error = 0.0
 prev_error = 0.0
 
 
-def control(centerline_error, steering_angle):
+def control(centerline_error):
   global kp
   global kd
   global VELOCITY
 
   # TO-DO: Implement controller
   # ---
-  # Aaron will code this.  See the return values of follow_center()
+  if abs(centerline_error) > 0:
+    try:
+      prop_term = centerline_error
+      int_term = prev_error + centerline_error * (1 / FREQUENCY)
+      der_term = (centerline_error - prev_error) / (1 / FREQUENCY)
+      STEERING_ANGLE = prop_term * kp + int_term * ki + der_term * kd
+    except:
+      STEERING_ANGLE = 0
+
+    prev_error = centerline_error
   # ---
 
   # Set maximum thresholds for steering angles
-  if steering_angle > 0.5:
-    steering_angle = 0.5
-  elif steering_angle < -0.5:
-    steering_angle = -0.5
+  if STEERING_ANGLE > 0.5:
+    STEERING_ANGLE = 0.5
+  elif STEERING_ANGLE < -0.5:
+    STEERING_ANGLE = -0.5
 
-  print("Steering Angle is = %f" % steering_angle)
+  print("Steering Angle is = %f" % STEERING_ANGLE)
 
   # TO-DO: Publish the message
   # ---
-
-  if abs(centerline_error) > 0:
-    prop_term = centerline_error
-    int_term = prev_error + centerline_error * (1 / FREQUENCY)
-    der_term = (centerline_error - prev_error) / (1 / FREQUENCY)
-    STEERING_ANGLE = prop_term * kp + int_term * ki + der_term * kd
-    prev_error = centerline_error
-
   msg.drive.steering_angle = STEERING_ANGLE
   pub.publish(msg)
-
 
 # ---  # Aaron will code this.  Note that he will need to implement a publisher down at the bottom (we think?)
 # ---
@@ -155,7 +155,7 @@ def callback(data):
   # To follow the centerline
   ec = follow_center(angle_right, angle_lookahead, data)
 
-  control(ec, STEERING_ANGLE)
+  control(ec)
 
   rospy.Frequency(FREQUENCY)
 
