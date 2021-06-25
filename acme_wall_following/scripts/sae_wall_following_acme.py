@@ -55,6 +55,8 @@ def control(centerline_error):
 
   # TO-DO: Publish the message
   # ---
+  msg = AckermannDriveStamped()
+  msg.drive.speed = VELOCITY
   msg.drive.steering_angle = STEERING_ANGLE
   pub.publish(msg)
 
@@ -157,7 +159,7 @@ def callback(data):
 
   control(ec)
 
-  rospy.Frequency(FREQUENCY)
+  rospy.Rate(FREQUENCY)
 
 
 if __name__ == '__main__':
