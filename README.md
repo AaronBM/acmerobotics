@@ -1,30 +1,30 @@
-# acmerobotics
-Repo for SAE Robotics Bootcamp
+# **acmerobotics**
+## Repo for SAE Robotics Bootcamp
 
-20210622   -  Initial conception due to unrecoverable state of ACME_Robotics
-
-
-
-author-  Aaron
-author-  CJ
-author-  Mark
-author-  Erika
-
-Gracious Executive Consultant - Huzefa
+#### 20210622   -  Initial conception due to unrecoverable state of ACME_Robotics
 
 
 
-Highlevel coverage of files and packages created for Summer-2021  SAE Robotics Bootcamp
+##### author-  Aaron
+##### author-  CJ
+##### author-  Mark
+##### author-  Erika
 
-#Current
+#### Gracious Executive Consultant - Huzefa
+
+
+
+## High level coverage of files and packages created for Summer-2021  SAE Robotics Bootcamp
+
+### Current
 AEB  - Automatic Emergency Braking
 Wall Following
 
 
-#Next
+### Next
 OpenCV
 
-#Future
+### Future
 AdvnacedLaneDetection
 BehaviorCloning
 LineFollowing
