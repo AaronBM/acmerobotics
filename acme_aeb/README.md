@@ -4,12 +4,13 @@ Repo for SAE Robotics Bootcamp
 20210622   -  Initial conception due to unrecoverable state of ACME_Robotics
            -  Modification of launch file to include all required components.
 
-author-  Aaron
-author-  CJ
-author-  Mark
-author-  Erika
+**author**-  Aaron 
 
-Gracious Executive Consultant - Huzefa
+**author**-  CJ
+**author**-  Mark
+**author**-  Erika
+
+*Gracious Executive Consultant* - Huzefa
 
 
 
@@ -20,18 +21,24 @@ https://sae.instructure.com/courses/143/assignments/259?module_item_id=821
 ============Automatic Emergency Braking (AEB) INSTRUCTIONS========================
 
 1) Navigate to your catkin workspace and add remote repository from git
+```
 $ git clone https://github.com/AaronBM/acmerobotics
-
+```
 2) Refresh catkin.  Move up one directory from toplevel src file and run:
-$ catkin_make
 
+```
+$ catkin_make
+```
 3) Run the launchfile
+```
 $ roslaunch acme_aeb aeb.launch
+```
 
 4) Revel in the glory of an uncrashed car.
+🎉 🎉 🎉
 
 5) Invest in ACME Robotics.  Bitcoin accepted
-
+🚀
 
 ------------Methodology----------------------------------------------
 The algorithm searches for the straight ahead angle and returns the average
