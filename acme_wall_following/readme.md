@@ -31,7 +31,7 @@ $ catkin_make
 ```
 3) Run the launchfile
 ```
-$ roslaunch acme_wallfollowing wallfollowing.launch
+$ roslaunch acme_wall_following f1_tenth_ACME_WallFollowing.launch
 ```
 
 4) Revel in the glory of the roomba.
