@@ -15,11 +15,15 @@ ANGLE_RANGE = 270  # Hokuyo 10LX has 270 degrees scan
 DISTANCE_RIGHT_THRESHOLD = 0.5  # (m)
 VELOCITY = 0.1  # meters per second
 FREQUENCY = 10  # 10 Hz
+MAX_STEERING_ANGLE = 0.5
+MAX_VELOCITY = 1.0
 
 # Controller parameters
-kp = 0.7
-ki = 0.2
+kp = .5
+ki = 0.0
 kd = 0.0
+
+kp_vel = 0.5
 
 # Other global variables
 error = 0.0
@@ -30,28 +34,41 @@ def control(centerline_error):
   global kp
   global kd
   global VELOCITY
+  global prev_error
+  global MAX_STEERING_ANGLE
+  global MAX_VELOCITY
+  global kp_vel
 
   # TO-DO: Implement controller
   # ---
+
   if abs(centerline_error) > 0:
-    try:
       prop_term = centerline_error
       int_term = prev_error + centerline_error * (1 / FREQUENCY)
       der_term = (centerline_error - prev_error) / (1 / FREQUENCY)
       STEERING_ANGLE = prop_term * kp + int_term * ki + der_term * kd
-    except:
-      STEERING_ANGLE = 0
 
-    prev_error = centerline_error
+  prev_error = centerline_error # Store current centerline to old error state
+  print('P: ',centerline_error,', I:', int_term, 'D: ',der_term)
+  print('Unattenuated Command: ', STEERING_ANGLE)
   # ---
 
   # Set maximum thresholds for steering angles
-  if STEERING_ANGLE > 0.5:
-    STEERING_ANGLE = 0.5
-  elif STEERING_ANGLE < -0.5:
-    STEERING_ANGLE = -0.5
+  if STEERING_ANGLE > MAX_STEERING_ANGLE:
+    STEERING_ANGLE = MAX_STEERING_ANGLE
+  elif STEERING_ANGLE < -MAX_STEERING_ANGLE:
+    STEERING_ANGLE = -MAX_STEERING_ANGLE
 
   print("Steering Angle is = %f" % STEERING_ANGLE)
+
+  # Velocity controller
+  VELOCITY = MAX_VELOCITY - kp_vel * abs(STEERING_ANGLE) / MAX_STEERING_ANGLE
+
+  # Command at least a little velocity
+  if VELOCITY <= 0.001:
+    VELOCITY = 0.1
+
+  print('Commanded velocity = %f' % VELOCITY)
 
   # TO-DO: Publish the message
   # ---
@@ -75,9 +92,9 @@ def get_index(angle, data):
 
   # Find the places where the angle is within the specified limits
   index = np.where((angle - angle_limit < all_angles) & (all_angles < angle + angle_limit))[0]
-  print(index)
+  #print(index)
 
-  print('Current index: [', index[0],', ',index[-1], ']')
+  #print('Current index: [', index[0],', ',index[-1], ']')
 
   return index
 # ---
@@ -95,34 +112,33 @@ def get_scan_distance(angle,data):
 def distance(angle_right, angle_lookahead, data):
   global ANGLE_RANGE
   global DISTANCE_RIGHT_THRESHOLD
+  global VELOCITY
 
   # TO-DO: Find index of the two rays, and calculate a, b, alpha and theta. Find the actual distance from the right wall.
   # ---
   distance_a = get_scan_distance(angle_lookahead,data)
   distance_b = get_scan_distance(angle_right,data)
-  print('Distance Ahead: ',distance_a)
-  print('Distance Right: ',distance_b)
+  print('Distance (45): ',distance_a)
+  print('Distance (90): ',distance_b)
 
   theta = angle_right - angle_lookahead
   theta_rad = theta * np.pi / 180
 
-  distance_c = pow(distance_a ** 2 + distance_b ** 2 - 2 * distance_a * distance_b * np.cos(theta_rad),
-                   0.5)  # Ray between end of a and b
-  distance_r = distance_a * distance_b / distance_c * np.sin(theta_rad)  # Distance from wall
-
-  if (distance_a ** 2 - distance_r ** 2 < distance_c ** 2):
-    alpha = -np.arccos(distance_r / distance_b)
-  else:
-    alpha = np.arccos(distance_r / distance_b)
-
+  alpha_rad = np.arctan( (distance_a * np.cos(theta_rad) - distance_b) / distance_a * np.sin(theta_rad) )
+  alpha = alpha_rad * 180 / np.pi
+  distance_r = distance_b * np.cos(alpha_rad)
+  print('Distance R: ',distance_r)
   l = VELOCITY / FREQUENCY
 
   # ---
 
-  print("Distance from right wall : %f" % distance_r)
+  print('Distance from wall(', angle_right,'): ', distance_r)
 
   # Calculate error
-  error = DISTANCE_RIGHT_THRESHOLD - distance_r + (l * np.cos(alpha * np.pi / 180))
+  error = DISTANCE_RIGHT_THRESHOLD - distance_r + (l * np.cos(alpha_rad))
+
+  if np.isnan(error):
+    error = 0
 
   return error, distance_r
 
@@ -138,7 +154,10 @@ def follow_center(angle_right, angle_lookahead_right, data):
 
   # Find Centerline error
   # ---
-  centerline_error = el - er
+  print('Error right: ', er)
+  print('Error left: ', el)
+
+  centerline_error = er - el
   # ---
 
   print("Centerline error = %f " % centerline_error)

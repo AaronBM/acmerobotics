@@ -18,5 +18,6 @@
 
   <!--<node pkg="race" name="control_node" type="control.py" output="screen"/>-->
   <node pkg="race" name="sim_connector_node" type="sim_connector.py"/>
+  <node pkg="acme_wall_following" name="sae_wall_following_acme_node" type="sae_wall_following_acme.py"/>
   <node pkg="race" name="keyboard_node" type="keyboard.py" output="screen"/>
 </launch>
